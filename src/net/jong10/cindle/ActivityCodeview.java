@@ -61,7 +61,7 @@ public class ActivityCodeview extends Activity {
         if( mSourceCode == null ){
             Log.e(TAG, "response str is null : " + sb.toString() );
         }
-        Log.i(TAG, mSourceCode);
+        // Log.i(TAG, mSourceCode);
 
         // setup project, filename
         WebView wv = (WebView)this.findViewById(R.id.codeView);

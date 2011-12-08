@@ -14,12 +14,14 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 public class ActivityCscope extends ListActivity {
@@ -30,23 +32,38 @@ public class ActivityCscope extends ListActivity {
     private String mQuery = "0";
     
     private String queryReuslt = null;
+    private ArrayList<CscopeResult> mCscopeResults;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cscope);
-        loadQuery( savedInstanceState );
+        CscopeQuery( savedInstanceState );
         
         String lines[] = queryReuslt.split("\\r?\\n");
-        ArrayList<CscopeResult> results = new ArrayList<CscopeResult>();
+        mCscopeResults = new ArrayList<CscopeResult>();
         for( String line : lines )
-            results.add( new CscopeResult(line) );
+            mCscopeResults.add( new CscopeResult(line) );
         
-        CscopeAdapter m_adapter = new CscopeAdapter(this, R.layout.cscope_row, results);
-        setListAdapter(m_adapter); 
+        CscopeAdapter m_adapter = new CscopeAdapter(this, R.layout.cscope_row);
+        setListAdapter(m_adapter);
+        
+    }
+    
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id){
+        CscopeResult item = mCscopeResults.get(position);
+        Intent i = new Intent(this, ActivityCodeview.class);
+        i.putExtra("prj", "android-platform");
+        // very long source code
+        // i.putExtra("filename", "frameworks/base/core/java/android/app/Fragment.java");
+        // short source code
+        i.putExtra("filename", item.getPath());
+        i.putExtra("linnum", item.getLinnum());
+        startActivity(i);
     }
 
-    private void loadQuery( Bundle savedInstanceState ) {
+    private void CscopeQuery( Bundle savedInstanceState ) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cscope);
         
@@ -75,15 +92,13 @@ public class ActivityCscope extends ListActivity {
         if( queryReuslt == null ){
             Log.e( TAG, "response str is null : " + sb.toString() );
         }
-        Log.i(TAG, queryReuslt);
+        // Log.i(TAG, queryReuslt);
     }
     
     private class CscopeAdapter extends ArrayAdapter<CscopeResult> {
-        private ArrayList<CscopeResult> items;
         
-        public CscopeAdapter(Context context, int textViewResourceId, ArrayList<CscopeResult> items) {
-            super(context, textViewResourceId, items);
-            this.items = items;
+        public CscopeAdapter(Context context, int textViewResourceId) {
+            super(context, textViewResourceId, mCscopeResults);
         }
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
@@ -92,7 +107,7 @@ public class ActivityCscope extends ListActivity {
                 LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 v = vi.inflate(R.layout.cscope_row, null);
             }
-            CscopeResult p = items.get(position);
+            CscopeResult p = mCscopeResults.get(position);
             if (p != null) {
                 TextView t1 = (TextView) v.findViewById(R.id.cscope_path);
                 TextView t2 = (TextView) v.findViewById(R.id.cscope_method);
