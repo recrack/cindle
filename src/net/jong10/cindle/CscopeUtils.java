@@ -1,14 +1,10 @@
 package net.jong10.cindle;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 
 import android.content.Context;
-import android.os.Environment;
-import android.provider.OpenableColumns;
 import android.util.Log;
 
 public class CscopeUtils {

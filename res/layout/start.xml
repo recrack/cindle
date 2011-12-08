@@ -6,10 +6,17 @@
     >
     
 	<Button
-	    android:id="@+id/startButton"
+	    android:id="@+id/loadfileButton"
 	    android:layout_width="wrap_content"
 	    android:layout_height="50dip"
-	    android:text="start button"
+	    android:text="loadfile button"
+	    />
+	
+	<Button
+	    android:id="@+id/cscopeButton"
+	    android:layout_width="wrap_content"
+	    android:layout_height="50dip"
+	    android:text="cscope button"
 	    />
     
 </LinearLayout>
