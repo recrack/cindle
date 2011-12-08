@@ -39,7 +39,7 @@ Codeview = (function(){
                 SyntaxHighlighter.highlight();
                 Codeview.addAction();
                 // load linnum
-                Codeview.setTitle( "filename" );
+                Codeview.setTitle( window.Cindle.getFilename() );
             },
 
             preloadHook : function() {
@@ -50,7 +50,7 @@ Codeview = (function(){
 
             clickHook : function( node ) {
                 // console.log( node.innerHTML );
-                window.Cindle.Clickhook( this.innerHTML );
+                window.Cindle.clickhook( this.innerHTML );
             }
         };
     })();

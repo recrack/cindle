@@ -5,56 +5,75 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.Button;
 
 public class MainActivity extends Activity {
     final private String TAG = "cindle";
     final private Context myApp = this;
-    private CscopeUtils mCscopeUtils = null;
     private String mProject = "test";
     private String mFilename = "FindResult.java";
-
+    private String mLinnum = "0";
+    
+    private String mSourceCode = null;
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "on create");
         setContentView(R.layout.main);
+        
+        mProject = getIntent().getStringExtra( "prj" );
+        mFilename = getIntent().getStringExtra( "filename" );
+        mLinnum = getIntent().getStringExtra( "linnum" );
+        
+        // get file from web
+        HttpClient client = new DefaultHttpClient();
+        StringBuilder sb = new StringBuilder("http://192.168.0.102/codeview/index.py/get_file?prj=");
+        sb = sb.append(mProject)
+                .append("&filename=")
+                .append(mFilename)
+                .append("&linnum=").append(mLinnum);
+        Log.i(TAG, sb.toString());
+        
+        HttpGet request = new HttpGet( sb.toString() );
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        try {
+            mSourceCode = client.execute(request, responseHandler);
+        } catch (ClientProtocolException e1) {
+            e1.printStackTrace();
+            return;
+        } catch (IOException e1) {
+            e1.printStackTrace();
+            return;
+        }
+        if( mSourceCode == null ){
+            Log.e(TAG, "response str is null : " + sb.toString() );
+        }
+        Log.i(TAG, mSourceCode);
 
         // setup project, filename
         WebView wv = (WebView)this.findViewById(R.id.codeView);
         wv.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         wv.getSettings().setJavaScriptEnabled(true);
         wv.loadUrl("file:///android_asset/www/test.html");
-        wv.addJavascriptInterface( new CodeviewJavaScriptInterface(), "Cindle" );
-
-        try {
-            mCscopeUtils = new CscopeUtils(this, mProject);
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-            for (StackTraceElement s : e.getStackTrace())
-                Log.e(TAG, s.toString());
-        }
-
-        // for test
-        Button testButton = (Button) findViewById(R.id.testButton);
-        testButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mCscopeUtils.generateCscopeOut();
-            }
-        });
+        wv.addJavascriptInterface(  new CodeviewJavaScriptInterface(), "Cindle" );
+        sb = new StringBuilder("javascript:callJS('").append(mSourceCode).append("')");
+        wv.loadUrl( sb.toString() );
     }
 
     final class CodeviewJavaScriptInterface {
@@ -64,11 +83,11 @@ public class MainActivity extends Activity {
             Log.i(TAG, string);
         }
 
-        public void Clickhook(String innerHTML) {
+        public void clickhook(String innerHTML) {
             String[] findTypeString = myApp.getResources().getStringArray(R.array.findBy);
             AlertDialog.Builder dialog = new AlertDialog.Builder(myApp);
             currentHtmlText = innerHTML;
-            dialog.setTitle("cscope find");
+            dialog.setTitle( "cscope find : " + innerHTML );
             dialog.setItems( findTypeString, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -84,27 +103,11 @@ public class MainActivity extends Activity {
         }
 
         public String loadfile() {
-            File sdcard = Environment.getExternalStorageDirectory();
-            //Get the text file
-            StringBuilder path = new StringBuilder();
-            path = path.append("cindle").append("/").append( mProject ).append("/").append( mFilename );
-            File file = new File(sdcard, path.toString() );
-            Log.i(TAG, file.getPath());
-
-            //Read text from file
-            StringBuilder text = new StringBuilder();
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(file));
-                String line;
-                while ((line = br.readLine()) != null) {
-                    text.append(line);
-                    text.append('\n');
-                }
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-            return text.toString();
+            return mSourceCode;
+        }
+        
+        public String getFilename(){
+            return mFilename;
         }
     }
 }
