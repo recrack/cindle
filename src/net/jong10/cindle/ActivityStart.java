@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-public class StartActivity extends Activity {
+public class ActivityStart extends Activity {
     final private Context myContext = this; 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -20,7 +20,7 @@ public class StartActivity extends Activity {
         testButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(myContext, MainActivity.class);
+                Intent i = new Intent(myContext, ActivityCodeview.class);
                 i.putExtra("prj", "android-platform");
                 // very long source code
                 // i.putExtra("filename", "frameworks/base/core/java/android/app/Fragment.java");
@@ -37,7 +37,7 @@ public class StartActivity extends Activity {
         testCscopeButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(myContext, CscopeActivity.class);
+                Intent i = new Intent(myContext, ActivityCscope.class);
                 i.putExtra("prj", "android-platform");
                 // very long source code
                 // i.putExtra("filename", "frameworks/base/core/java/android/app/Fragment.java");

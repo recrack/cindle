@@ -19,7 +19,7 @@ import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
-public class MainActivity extends Activity {
+public class ActivityCodeview extends Activity {
     final private String TAG = "cindle";
     final private Context myApp = this;
     private String mProject = "test";
@@ -32,7 +32,7 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "on create");
-        setContentView(R.layout.main);
+        setContentView(R.layout.codeview);
         
         mProject = getIntent().getStringExtra( "prj" );
         mFilename = getIntent().getStringExtra( "filename" );

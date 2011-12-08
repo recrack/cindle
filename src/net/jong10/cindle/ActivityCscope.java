@@ -22,7 +22,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-public class CscopeActivity extends ListActivity {
+public class ActivityCscope extends ListActivity {
     final private String TAG = "cindle";
     
     private String mProject = "test";
@@ -42,7 +42,7 @@ public class CscopeActivity extends ListActivity {
         for( String line : lines )
             results.add( new CscopeResult(line) );
         
-        CscopeAdapter m_adapter = new CscopeAdapter(this, R.layout.row, results);
+        CscopeAdapter m_adapter = new CscopeAdapter(this, R.layout.cscope_row, results);
         setListAdapter(m_adapter); 
     }
 
@@ -90,7 +90,7 @@ public class CscopeActivity extends ListActivity {
             View v = convertView;
             if (v == null) {
                 LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                v = vi.inflate(R.layout.row, null);
+                v = vi.inflate(R.layout.cscope_row, null);
             }
             CscopeResult p = items.get(position);
             if (p != null) {
