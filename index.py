@@ -52,7 +52,7 @@ def get_dir_list(req):
     f = os.popen("ls -d */")
     out = ""
     for line in f.readlines():
-        out += line
+        out += line[:-2] + "\n"
     return out
 
 # http://localhost/codeview/index.py/cscope?prj=android-platform&method=-1&query=shutdown
