@@ -11,6 +11,7 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -47,14 +48,18 @@ public class ActivityDirListing extends ListActivity {
         TextView tv = (TextView)this.findViewById(R.id.dir_listing_title);
         tv.setText( mPath );
 
-        mDirListing.add( new DirItem("..", EntryType.UP) );
-        DirListingDir( savedInstanceState );
-        DirListingFile( savedInstanceState );
-        
+        loadDirInfo();
+
         m_adapter = new DirListingAdapter(this, R.layout.dir_listing_row );
         setListAdapter(m_adapter);
     }
     
+    private void loadDirInfo() {
+        mDirListing.add( new DirItem("..", EntryType.UP) );
+        DirListing("get_dir_list", EntryType.DIR);
+        DirListing("get_file_list", EntryType.FILE);
+    }
+
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id){
         DirItem item = mDirListing.get(position);
@@ -88,14 +93,11 @@ public class ActivityDirListing extends ListActivity {
         startActivity(i);
     }
     
-    private void DirListingFile( Bundle savedInstanceState ) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.cscope);
-        
-        // get cscope result from web
+    private void DirListing(String dirType, EntryType type) {
         HttpClient client = new DefaultHttpClient();
         StringBuilder sb = new StringBuilder( "http://").append(mIp)
-                .append("/codeview/index.py/get_file_list?prj=").append(mProject)
+                .append("/codeview/index.py/").append(dirType)
+                .append("?prj=").append(mProject)
                 .append("&path=").append(mPath);
         Log.i( TAG, sb.toString() );
         
@@ -119,44 +121,9 @@ public class ActivityDirListing extends ListActivity {
         String lines[] = resultFile.split("\\r?\\n");
         for( String line : lines )
             if( line != null && line.length() > 0 )
-                mDirListing.add( new DirItem(line, EntryType.FILE) );
+                mDirListing.add( new DirItem(line, type) );
     }
     
-    private void DirListingDir( Bundle savedInstanceState ) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.cscope);
-        
-        // get cscope result from web
-        HttpClient client = new DefaultHttpClient();
-        StringBuilder sb = new StringBuilder( "http://").append(mIp)
-                .append("/codeview/index.py/get_dir_list?prj=").append(mProject)
-                .append("&path=").append(mPath);
-        Log.i( TAG, sb.toString() );
-        
-        HttpGet request = new HttpGet( sb.toString() );
-        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        String resultDir;
-        try {
-            resultDir = client.execute(request, responseHandler);
-        } catch (ClientProtocolException e1) {
-            e1.printStackTrace();
-            return;
-        } catch (IOException e1) {
-            e1.printStackTrace();
-            return;
-        }
-        if( resultDir == null ){
-            Log.e( TAG, "response str is null : " + sb.toString() );
-            return;
-        }
-        
-        String lines[] = resultDir.split("\\r?\\n");
-        for( String line : lines )
-            if( line != null && line.length() > 0 )
-                mDirListing.add( new DirItem(line, EntryType.DIR) );
-        
-    }
-
     private class DirListingAdapter extends ArrayAdapter<DirItem> {
         DirListingAdapter ( Context context, int textViewResourceId ) {
             super(context, textViewResourceId, mDirListing);
