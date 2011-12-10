@@ -20,8 +20,8 @@ def get_file(req):
     return out
 
 # http://localhost/codeview/index.py/get_file_list?prj=android-platform&path=frameworks/base/core
-import os
 def get_file_list(req):
+    import os
     info = req.form
     prj = info.get( 'prj', None )
     if prj is None:
@@ -31,14 +31,15 @@ def get_file_list(req):
         return "errno 1 : path is noen"
     out = ""
     os.chdir( prjRoot + prj + "/" + path )
-    f = popen(["find", "-type", "f", "-maxdepth", "1"])
+    f = os.popen("find -type f -maxdepth 1")
     out = ""
     for line in f.readlines():
-        out += line
+        out += line[2:]
     return out
 
 # http://localhost/codeview/index.py/get_dir_list?prj=android-platform&path=frameworks/base/core
 def get_dir_list(req):
+    import os
     info = req.form
     prj = info.get( 'prj', None )
     if prj is None:
@@ -48,10 +49,10 @@ def get_dir_list(req):
         return "errno 1 : path is noen"
     out = ""
     os.chdir( prjRoot + prj + "/" + path )
-    f = popen(["ls", "-d", "*/"])
+    f = os.popen("ls -d */")
     out = ""
     for line in f.readlines():
-        out += line
+        out += line[:-2] + "\n"
     return out
 
 # http://localhost/codeview/index.py/cscope?prj=android-platform&method=-1&query=shutdown
