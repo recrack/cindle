@@ -50,7 +50,7 @@ Codeview = (function(){
 
             clickHook : function( node ) {
                 // console.log( node.innerHTML );
-                window.Cindle.clickhook( this.innerHTML );
+                window.Cindle.clickhook( node.innerHTML );
             }
         };
     })();
