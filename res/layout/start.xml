@@ -1,11 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-    
-	<Button
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent">
+ 	<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+		android:layout_height="fill_parent"
+		android:layout_width="fill_parent">
+		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			android:orientation="vertical"
+			android:layout_width="fill_parent" android:layout_height="fill_parent"
+			android:theme="@android:style/Theme.Translucent">
+
+			<TextView android:text="Cindle : code viewer for Android"
+				android:typeface="monospace"
+				android:layout_width="fill_parent" android:layout_height="wrap_content"
+				android:textSize="26sp" android:layout_marginTop="15dp"
+				android:layout_marginBottom="15dp" android:gravity="center"></TextView>
+			<EditText android:layout_width="match_parent"
+				android:typeface="monospace"
+				android:layout_height="wrap_content" android:id="@+id/EditTextIp"
+				android:hint="server ip address" android:layout_marginLeft="15dp"
+				android:layout_marginRight="15dp"></EditText>
+			<EditText android:layout_width="match_parent"
+				android:typeface="monospace"
+				android:layout_height="wrap_content" android:id="@+id/EditTextPrj"
+				android:hint="project name"
+				android:layout_marginLeft="15dp" android:layout_marginRight="15dp"
+				android:layout_marginTop="15dp"></EditText>
+			<Button
+				android:typeface="monospace"
+				android:layout_width="match_parent" android:layout_height="wrap_content"
+				android:text="Cindle start" android:layout_marginLeft="15dp"
+				android:layout_marginRight="15dp" android:layout_marginTop="15dp"
+				android:textSize="13dp" android:onClick="onCindleStart"></Button>
+			<Button
+				android:typeface="monospace"
+				android:layout_width="match_parent" android:layout_height="wrap_content"
+				android:text="browse Cindle demo project (android source)" android:layout_marginLeft="15dp"
+				android:layout_marginRight="15dp" android:layout_marginTop="15dp"
+				android:textSize="13dp" android:onClick="onCindleDemo"></Button>
+			    			
+		 <!-- for test button 		
+  	<Button
 	    android:id="@+id/loadfileButton"
 	    android:layout_width="wrap_content"
 	    android:layout_height="50dip"
@@ -17,7 +54,15 @@
 	    android:layout_width="wrap_content"
 	    android:layout_height="50dip"
 	    android:text="cscope button"
+	    />	
+	<Button
+	    android:id="@+id/buttonDirListing"
+	    android:layout_width="wrap_content"
+	    android:layout_height="50dip"
+	    android:text="button dir listing"
 	    />
-    
+	     -->
+		</LinearLayout>
+	</ScrollView>
 </LinearLayout>
     

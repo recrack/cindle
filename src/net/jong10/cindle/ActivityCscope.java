@@ -30,9 +30,11 @@ public class ActivityCscope extends ListActivity {
     private String mProject = "test";
     private int mMethod = -1;
     private String mQuery = "0";
+    private String mIp = "";
     
-    private String queryReuslt = null;
+    private String mQueryReuslt = ""; //TODO. remove it
     private ArrayList<CscopeResult> mCscopeResults;
+    private CscopeAdapter m_adapter = null;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,22 +44,25 @@ public class ActivityCscope extends ListActivity {
         mProject = getIntent().getStringExtra( "prj" );
         mQuery = getIntent().getStringExtra( "query" );
         mMethod = getIntent().getIntExtra( "method", -1 );
+        mIp = getIntent().getStringExtra( "ip" );
+
         
+        mCscopeResults = new ArrayList<CscopeResult>();
         CscopeQuery( savedInstanceState );
         
         // set title
         String[] findTypeString = this.getResources().getStringArray(R.array.findBy);
         StringBuilder sb = new StringBuilder( findTypeString[ (-mMethod) - 1 ] ).append(" : ").append(mQuery);
-        TextView tv = (TextView)this.findViewById(R.id.cscope_result_title);
+        TextView tv = (TextView)this.findViewById(R.id.cscopeResultTitle);
         tv.setText( sb.toString() );
         
         // process query result
-        String lines[] = queryReuslt.split("\\r?\\n");
-        mCscopeResults = new ArrayList<CscopeResult>();
+        String lines[] = mQueryReuslt.split("\\r?\\n");
         for( String line : lines )
-            mCscopeResults.add( new CscopeResult(line) );
+            if( line != null && line.length() > 0 )
+                mCscopeResults.add( new CscopeResult(line) );
         
-        CscopeAdapter m_adapter = new CscopeAdapter(this, R.layout.cscope_row);
+        m_adapter = new CscopeAdapter(this, R.layout.cscope_row);
         setListAdapter(m_adapter);
     }
     
@@ -66,11 +71,9 @@ public class ActivityCscope extends ListActivity {
         CscopeResult item = mCscopeResults.get(position);
         Intent i = new Intent(this, ActivityCodeview.class);
         i.putExtra("prj", "android-platform");
-        // very long source code
-        // i.putExtra("filename", "frameworks/base/core/java/android/app/Fragment.java");
-        // short source code
         i.putExtra("filename", item.getPath());
         i.putExtra("linnum", item.getLinnum());
+        i.putExtra("ip", mIp);
         startActivity(i);
     }
 
@@ -80,7 +83,7 @@ public class ActivityCscope extends ListActivity {
         
         // get cscope result from web
         HttpClient client = new DefaultHttpClient();
-        StringBuilder sb = new StringBuilder( "http://192.168.0.102/codeview/index.py/cscope?prj=").append(mProject)
+        StringBuilder sb = new StringBuilder( "http://59.18.159.96/codeview/index.py/cscope?prj=").append(mProject)
                 .append("&method=").append(mMethod)
                 .append("&query=").append(mQuery);
         Log.i( TAG, sb.toString() );
@@ -88,7 +91,7 @@ public class ActivityCscope extends ListActivity {
         HttpGet request = new HttpGet( sb.toString() );
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         try {
-            queryReuslt = client.execute(request, responseHandler);
+            mQueryReuslt = client.execute(request, responseHandler);
         } catch (ClientProtocolException e1) {
             e1.printStackTrace();
             return;
@@ -96,7 +99,7 @@ public class ActivityCscope extends ListActivity {
             e1.printStackTrace();
             return;
         }
-        if( queryReuslt == null ){
+        if( mQueryReuslt == null ){
             Log.e( TAG, "response str is null : " + sb.toString() );
         }
         // Log.i(TAG, queryReuslt);
@@ -129,14 +132,13 @@ public class ActivityCscope extends ListActivity {
         }
     }
     
-    class CscopeResult {
+    private class CscopeResult {
         private String mPath;
         private String mLinnum;
         private String mFunction;
         private String mLineStr;
         
-        public CscopeResult(String line){
-            
+        public CscopeResult(String line) {
             Pattern p = Pattern.compile("([^ ]+) ([^ ]+) ([^ ]+) (.+)");
             Matcher m = p.matcher(line);
             while( m.find() && m.groupCount() == 4 ){
@@ -147,20 +149,9 @@ public class ActivityCscope extends ListActivity {
             }
         }
         
-        public String getPath() {
-            return mPath;
-        }
-
-        public String getLinnum() {
-            return mLinnum;
-        }
-
-        public String getFuntion() {
-            return mFunction;
-        }
-        
-        public String getLineStr() {
-            return mLineStr;
-        }
+        public String getPath() { return mPath; }
+        public String getLinnum() { return mLinnum; }
+        public String getFuntion() { return mFunction; }
+        public String getLineStr() { return mLineStr; }
     }
 }

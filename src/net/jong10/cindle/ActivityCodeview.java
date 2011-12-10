@@ -26,6 +26,7 @@ public class ActivityCodeview extends Activity {
     private String mProject = "test";
     private String mFilename = "FindResult.java";
     private String mLinnum = "0";
+    private String mIp = "";
     
     private String mSourceCode = null;
     
@@ -38,6 +39,8 @@ public class ActivityCodeview extends Activity {
         mProject = getIntent().getStringExtra( "prj" );
         mFilename = getIntent().getStringExtra( "filename" );
         mLinnum = getIntent().getStringExtra( "linnum" );
+        mIp = getIntent().getStringExtra( "ip" );
+
         
         // make mSourceCode content
         loadCode();
@@ -56,10 +59,9 @@ public class ActivityCodeview extends Activity {
     private void loadCode() {
         // get file from web
         HttpClient client = new DefaultHttpClient();
-        StringBuilder sb = new StringBuilder("http://192.168.0.102/codeview/index.py/get_file?prj=");
-        sb = sb.append(mProject)
-                .append("&filename=")
-                .append(mFilename)
+        StringBuilder sb = new StringBuilder("http://").append(mIp)
+                .append("/codeview/index.py/get_file?prj=").append(mProject)
+                .append("&filename=").append(mFilename)
                 .append("&linnum=").append(mLinnum);
         Log.i(TAG, sb.toString());
         
