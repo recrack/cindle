@@ -44,53 +44,63 @@ public class ActivityDirListing extends ListActivity {
         mPath = getIntent().getStringExtra( "path" );
         mIp = getIntent().getStringExtra( "ip" );
         
-        // set title
-        TextView tv = (TextView)this.findViewById(R.id.dir_listing_title);
-        tv.setText( mPath );
-
-        loadDirInfo();
+        updateDirInfo();
 
         m_adapter = new DirListingAdapter(this, R.layout.dir_listing_row );
         setListAdapter(m_adapter);
     }
     
-    private void loadDirInfo() {
+    private void updateDirInfo() {
+        Log.i(TAG, "start update dir info...");
+        mDirListing.clear();
         mDirListing.add( new DirItem("..", EntryType.UP) );
         DirListing("get_dir_list", EntryType.DIR);
         DirListing("get_file_list", EntryType.FILE);
+        Log.i(TAG, "finish update dir info");
+        
+        // set title
+        TextView tv = (TextView)this.findViewById(R.id.dir_listing_title);
+        tv.setText( mPath );
     }
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id){
         DirItem item = mDirListing.get(position);
-        Intent i = null;
         switch( item.getType() ){
         case DIR:
-            i = new Intent(this, ActivityDirListing.class);
             if( mPath.equalsIgnoreCase("/") )
-                i.putExtra("path", mPath + item.getName());
+                mPath = mPath + item.getName();
             else
-                i.putExtra("path", mPath + "/" + item.getName());
-            break;
+                mPath = mPath + "/" + item.getName();
+            updateDirInfo();
+            m_adapter.notifyDataSetInvalidated();
+            return;
         case UP:
+            if( mPath.equalsIgnoreCase("/") ){
+                // is root dir
+                // TODO toast message
+                return;
+            }
             // for dynamic listing code
-//            i = new Intent(this, ActivityDirListing.class);
-//            StringBuilder sb = new StringBuilder();
-//            String[] pathList = mPath.split("/");
-//            for( int index = 1; index< pathList.length - 1; index++ )
-//                sb.append("/").append( pathList[index] );
-//            i.putExtra( "path", sb.toString() );
+            StringBuilder sb = new StringBuilder();
+            String[] pathList = mPath.split("/");
+            for( int index = 1; index< pathList.length - 1; index++ )
+                sb.append("/").append( pathList[index] );
+            mPath = sb.toString();
+            updateDirInfo();
+            m_adapter.notifyDataSetInvalidated();
             break;
         case FILE:
+            Intent i = null;
             i = new Intent(this, ActivityCodeview.class);
             i.putExtra("filename", mPath + "/" + item.getName());
+            i.putExtra("ip", mIp);
+            i.putExtra("prj", mProject);
+            startActivity(i);
             break;
         default:
             assert(false); return;
         }
-        i.putExtra("ip", mIp);
-        i.putExtra("prj", mProject);
-        startActivity(i);
     }
     
     private void DirListing(String dirType, EntryType type) {
