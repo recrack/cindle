@@ -28,7 +28,7 @@ public class ActivityCscope extends ListActivity {
     final private String TAG = "cindle";
     
     private String mProject = "test";
-    private String mMethod = "FindResult.java";
+    private int mMethod = -1;
     private String mQuery = "0";
     
     private String queryReuslt = null;
@@ -38,8 +38,20 @@ public class ActivityCscope extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cscope);
+        
+        mProject = getIntent().getStringExtra( "prj" );
+        mQuery = getIntent().getStringExtra( "query" );
+        mMethod = getIntent().getIntExtra( "method", -1 );
+        
         CscopeQuery( savedInstanceState );
         
+        // set title
+        String[] findTypeString = this.getResources().getStringArray(R.array.findBy);
+        StringBuilder sb = new StringBuilder( findTypeString[ (-mMethod) - 1 ] ).append(" : ").append(mQuery);
+        TextView tv = (TextView)this.findViewById(R.id.cscope_result_title);
+        tv.setText( sb.toString() );
+        
+        // process query result
         String lines[] = queryReuslt.split("\\r?\\n");
         mCscopeResults = new ArrayList<CscopeResult>();
         for( String line : lines )
@@ -47,7 +59,6 @@ public class ActivityCscope extends ListActivity {
         
         CscopeAdapter m_adapter = new CscopeAdapter(this, R.layout.cscope_row);
         setListAdapter(m_adapter);
-        
     }
     
     @Override
@@ -66,10 +77,6 @@ public class ActivityCscope extends ListActivity {
     private void CscopeQuery( Bundle savedInstanceState ) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cscope);
-        
-        mProject = getIntent().getStringExtra( "prj" );
-        mMethod = getIntent().getStringExtra( "method" );
-        mQuery = getIntent().getStringExtra( "query" );
         
         // get cscope result from web
         HttpClient client = new DefaultHttpClient();

@@ -16,15 +16,14 @@
             android:theme="@android:style/Theme.NoTitleBar">
         </activity>
         
-
-        <activity
-            android:theme="@android:style/Theme.NoTitleBar"  
-            android:name=".FindResult">
-        </activity>
-                
         <activity
             android:theme="@android:style/Theme.NoTitleBar"  
             android:name=".ActivityCscope">
+        </activity>
+        
+        <activity
+            android:theme="@android:style/Theme.NoTitleBar"  
+            android:name=".ActivityDirListing">
         </activity>
         
         <activity

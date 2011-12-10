@@ -22,6 +22,7 @@ import android.webkit.WebView;
 public class ActivityCodeview extends Activity {
     final private String TAG = "cindle";
     final private Context myApp = this;
+    
     private String mProject = "test";
     private String mFilename = "FindResult.java";
     private String mLinnum = "0";
@@ -38,6 +39,21 @@ public class ActivityCodeview extends Activity {
         mFilename = getIntent().getStringExtra( "filename" );
         mLinnum = getIntent().getStringExtra( "linnum" );
         
+        // make mSourceCode content
+        loadCode();
+
+        // setup project, filename
+        WebView wv = (WebView)this.findViewById(R.id.codeView);
+        wv.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        wv.getSettings().setJavaScriptEnabled(true);
+        wv.loadUrl("file:///android_asset/www/test.html");
+        wv.addJavascriptInterface(  new CodeviewJavaScriptInterface(), "Cindle" );
+        StringBuilder sb = new StringBuilder("javascript:callJS('").append(mSourceCode).append("')");
+        wv.loadUrl( sb.toString() );
+    }
+
+    // setup mSourceCode content 
+    private void loadCode() {
         // get file from web
         HttpClient client = new DefaultHttpClient();
         StringBuilder sb = new StringBuilder("http://192.168.0.102/codeview/index.py/get_file?prj=");
@@ -62,15 +78,6 @@ public class ActivityCodeview extends Activity {
             Log.e(TAG, "response str is null : " + sb.toString() );
         }
         // Log.i(TAG, mSourceCode);
-
-        // setup project, filename
-        WebView wv = (WebView)this.findViewById(R.id.codeView);
-        wv.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-        wv.getSettings().setJavaScriptEnabled(true);
-        wv.loadUrl("file:///android_asset/www/test.html");
-        wv.addJavascriptInterface(  new CodeviewJavaScriptInterface(), "Cindle" );
-        sb = new StringBuilder("javascript:callJS('").append(mSourceCode).append("')");
-        wv.loadUrl( sb.toString() );
     }
 
     final class CodeviewJavaScriptInterface {
@@ -88,9 +95,10 @@ public class ActivityCodeview extends Activity {
             dialog.setItems( findTypeString, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    Intent intent = new Intent( myApp, FindResult.class );
-                    intent.putExtra("findBy", which);
-                    intent.putExtra("text", currentHtmlText);
+                    Intent intent = new Intent( myApp, ActivityCscope.class );
+                    intent.putExtra("prj", mProject);
+                    intent.putExtra("query", currentHtmlText);
+                    intent.putExtra("method", -(which+1));
                     myApp.startActivity(intent);
                 }
             } );
@@ -100,6 +108,7 @@ public class ActivityCodeview extends Activity {
         }
 
         public String loadfile() {
+            // already loaded onCreate
             return mSourceCode;
         }
         
