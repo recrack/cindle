@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -39,7 +40,6 @@ public class ActivityCodeview extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i(TAG, "on create");
         setContentView(R.layout.codeview);
         
         // setup project, filename
@@ -48,11 +48,24 @@ public class ActivityCodeview extends Activity {
         mLinnum = getIntent().getStringExtra( "linnum" );
         mIp = getIntent().getStringExtra( "ip" );
 
+        // alert listener
+        WebView wv = (WebView)findViewById(R.id.codeView);
+        wv.setWebChromeClient( mAlertListner );
+
         // make mSourceCode content
         pd = ProgressDialog.show(this, "now loading...", "");
+        pd.setCancelable(true);
         new CodeviewLoader().execute(0);
     }
-
+    
+    WebChromeClient mAlertListner = new WebChromeClient() {
+        @Override
+        public boolean onJsAlert(WebView view, String url, String message, final android.webkit.JsResult result) {
+            Log.i(TAG, "onJsAlert : " + message);
+            return true;
+        };
+    };
+    
     final class CodeviewJavaScriptInterface {
         private String currentHtmlText = null;
 
@@ -146,10 +159,11 @@ public class ActivityCodeview extends Activity {
             wv.loadUrl("file:///android_asset/www/codeview.html");
             wv.addJavascriptInterface(  new CodeviewJavaScriptInterface(), "Cindle" );
             wv.setWebViewClient(new WebViewClient() {
+                
                 public void onPageFinished(WebView view, String url) {
-                     if( pd != null )
-                         pd.dismiss();
-                 }
+                    if( pd != null )
+                        pd.dismiss();
+                }
              });
             return wv;
         }

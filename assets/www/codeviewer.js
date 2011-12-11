@@ -34,8 +34,6 @@ Codeview = (function(){
             },
 
             postloadHook : function() {
-                var content = $("#content");
-                var contentContainer = $("#contentContainer");
                 SyntaxHighlighter.highlight();
                 Codeview.addAction();
                 // load linnum
@@ -46,11 +44,32 @@ Codeview = (function(){
                 // load file
                 filestr = window.Cindle.loadfile();
                 $("pre").text( filestr );
+                // setting syntax highlighter extension
+                var brush = "plain";
+                var brushDic = {"cpp":"Cpp", "c":"Cpp", "hpp":"Cpp", "h":"Cpp"
+                                    ,"java":"java"
+                                    ,"sh":"bash", "mk":"bash"
+                                    ,"css":"css", "html":"xml", "xml":"xml"
+                                    ,"php":"php", "pl":"perl"
+                                    ,"py":"py", "js":"js"
+                                   }; 
+                var filename = window.Cindle.getFilename();
+                fileExt = filename.split(".")[1];
+                window.Cindle.log( "filename : " + filename + ", extension : " + fileExt );
+                if( fileExt != null )
+                    brush = brushDic[ fileExt ];
+                else
+                    window.Cindle.log( "file extension not exist" );
+                if( brush == null )
+                    brush = "plain"
+                window.Cindle.log( "brush : " + brush );
+                $("pre").addClass( "brush:" + brush );
             },
 
             clickHook : function( node ) {
                 // console.log( node.innerHTML );
                 window.Cindle.clickhook( node.innerHTML );
-            }
+            },
+            
         };
     })();
