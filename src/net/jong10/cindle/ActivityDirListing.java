@@ -10,11 +10,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class ActivityDirListing extends ListActivity {
     final private String TAG = "cindle";
@@ -31,6 +35,7 @@ public class ActivityDirListing extends ListActivity {
     private String mPath = "/";
     private String mIp = "";
     
+    ActivityDirListing thisActivity = this;
     public enum EntryType { DIR, FILE, UP };
     private ArrayList<DirItem> mDirListing = new ArrayList<DirItem>();
     private DirListingAdapter m_adapter;
@@ -44,23 +49,59 @@ public class ActivityDirListing extends ListActivity {
         mPath = getIntent().getStringExtra( "path" );
         mIp = getIntent().getStringExtra( "ip" );
         
-        updateDirInfo();
-
         m_adapter = new DirListingAdapter(this, R.layout.dir_listing_row );
         setListAdapter(m_adapter);
+        
+        updateDirInfo();
     }
     
     private void updateDirInfo() {
-        Log.i(TAG, "start update dir info...");
-        mDirListing.clear();
-        mDirListing.add( new DirItem("..", EntryType.UP) );
-        DirListing("get_dir_list", EntryType.DIR);
-        DirListing("get_file_list", EntryType.FILE);
-        Log.i(TAG, "finish update dir info");
-        
-        // set title
         TextView tv = (TextView)this.findViewById(R.id.dir_listing_title);
         tv.setText( mPath );
+        new DirInfoUpdater().execute(0);
+    }
+
+    ProgressDialog pd = null;
+    
+    private class DirInfoUpdater extends AsyncTask<Integer, Integer, Integer> {
+
+        @Override
+        protected void onProgressUpdate(Integer... progress) {
+            pd = ProgressDialog.show(thisActivity, "now loading...", "load dir info from server");
+        }
+
+        protected void onPostExecute(Integer result) {
+            pd.dismiss();
+            m_adapter.notifyDataSetChanged();
+        }
+
+        @Override
+        protected Integer doInBackground(Integer... params) {
+            Log.i(TAG, "start update dir info...");
+            publishProgress(0);
+            mDirListing.clear();
+            mDirListing.add( new DirItem("..", EntryType.UP) );
+            addItemsToDirList("get_dir_list", EntryType.DIR);
+            addItemsToDirList("get_file_list", EntryType.FILE);
+            Log.i(TAG, "finish update dir info");
+            return 0;
+        }
+    }
+    
+    private void listUpdateToUpperDir() {
+        if( mPath.length() < 2 ){
+            Toast.makeText(this, "Root dir.", Toast.LENGTH_SHORT ).show();
+            return;
+        }
+        // for dynamic listing code
+        StringBuilder sb = new StringBuilder();
+        String[] pathList = mPath.split("/");
+        for( int index = 1; index< pathList.length - 1; index++ )
+            sb.append("/").append( pathList[index] );
+        if( sb.length() == 0 )
+            sb.append("/");
+        mPath = sb.toString();
+        updateDirInfo();
     }
 
     @Override
@@ -68,27 +109,14 @@ public class ActivityDirListing extends ListActivity {
         DirItem item = mDirListing.get(position);
         switch( item.getType() ){
         case DIR:
-            if( mPath.equalsIgnoreCase("/") )
+            if( mPath.length() < 2 )
                 mPath = mPath + item.getName();
             else
                 mPath = mPath + "/" + item.getName();
             updateDirInfo();
-            m_adapter.notifyDataSetInvalidated();
             return;
         case UP:
-            if( mPath.equalsIgnoreCase("/") ){
-                // is root dir
-                // TODO toast message
-                return;
-            }
-            // for dynamic listing code
-            StringBuilder sb = new StringBuilder();
-            String[] pathList = mPath.split("/");
-            for( int index = 1; index< pathList.length - 1; index++ )
-                sb.append("/").append( pathList[index] );
-            mPath = sb.toString();
-            updateDirInfo();
-            m_adapter.notifyDataSetInvalidated();
+            listUpdateToUpperDir();
             break;
         case FILE:
             Intent i = null;
@@ -103,7 +131,28 @@ public class ActivityDirListing extends ListActivity {
         }
     }
     
-    private void DirListing(String dirType, EntryType type) {
+    @Override
+    public void onBackPressed(){
+        new AlertDialog.Builder(this)
+        .setIcon(android.R.drawable.ic_dialog_alert)
+        .setTitle("backkey pressed")
+        .setMessage("choose behavior")
+        .setPositiveButton("exist dir activity", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                thisActivity.finish();
+            }
+        })
+        .setNegativeButton("up dir", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                listUpdateToUpperDir();
+            }
+        })
+        .show();
+    }
+    
+    private void addItemsToDirList(String dirType, EntryType type) {
         HttpClient client = new DefaultHttpClient();
         StringBuilder sb = new StringBuilder( "http://").append(mIp)
                 .append("/codeview/index.py/").append(dirType)
@@ -165,6 +214,7 @@ public class ActivityDirListing extends ListActivity {
         }
     }
     
+    // not support set method 
     private class DirItem {
         private String name;
         private EntryType type;
