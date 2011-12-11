@@ -13,8 +13,10 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -33,8 +35,9 @@ public class ActivityCscope extends ListActivity {
     private String mIp = "";
     
     private String mQueryReuslt = ""; //TODO. remove it
-    private ArrayList<CscopeResult> mCscopeResults;
+    private ArrayList<CscopeResultItem> mCscopeResults;
     private CscopeAdapter m_adapter = null;
+    private final ListActivity thisActivity = this;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,66 +49,76 @@ public class ActivityCscope extends ListActivity {
         mMethod = getIntent().getIntExtra( "method", -1 );
         mIp = getIntent().getStringExtra( "ip" );
 
-        
-        mCscopeResults = new ArrayList<CscopeResult>();
-        CscopeQuery( savedInstanceState );
+        mCscopeResults = new ArrayList<CscopeResultItem>();
         
         // set title
         String[] findTypeString = this.getResources().getStringArray(R.array.findBy);
         StringBuilder sb = new StringBuilder( findTypeString[ (-mMethod) - 1 ] ).append(" : ").append(mQuery);
         TextView tv = (TextView)this.findViewById(R.id.cscopeResultTitle);
         tv.setText( sb.toString() );
-        
-        // process query result
-        String lines[] = mQueryReuslt.split("\\r?\\n");
-        for( String line : lines )
-            if( line != null && line.length() > 0 )
-                mCscopeResults.add( new CscopeResult(line) );
+
+        new CscopeQuery().execute(0);
         
         m_adapter = new CscopeAdapter(this, R.layout.cscope_row);
         setListAdapter(m_adapter);
     }
+
+    private class CscopeQuery extends AsyncTask<Integer, Integer, Integer> {
+        ProgressDialog pd = null;
+        @Override
+        protected void onProgressUpdate(Integer... progress) {
+            pd = ProgressDialog.show(thisActivity, "now loading...", "load dir info from server");
+        }
+
+        protected void onPostExecute(Integer result) {
+            pd.dismiss();
+            m_adapter.notifyDataSetChanged();
+        }
+
+        @Override
+        protected Integer doInBackground(Integer... params) {
+            publishProgress(0);
+         // get cscope result from web
+            HttpClient client = new DefaultHttpClient();
+            StringBuilder sb = new StringBuilder( "http://59.18.159.96/codeview/index.py/cscope?prj=").append(mProject)
+                    .append("&method=").append(mMethod)
+                    .append("&query=").append(mQuery);
+            Log.i( TAG, sb.toString() );
+            
+            HttpGet request = new HttpGet( sb.toString() );
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            try {
+                mQueryReuslt = client.execute(request, responseHandler);
+            } catch (ClientProtocolException e1) {
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            if( mQueryReuslt == null ){
+                Log.e( TAG, "response str is null : " + sb.toString() );
+            }
+
+            // process query result
+            String lines[] = mQueryReuslt.split("\\r?\\n");
+            for( String line : lines )
+                if( line != null && line.length() > 0 )
+                    mCscopeResults.add( new CscopeResultItem(line) );
+            return 0;
+        }
+    }
     
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id){
-        CscopeResult item = mCscopeResults.get(position);
+        CscopeResultItem item = mCscopeResults.get(position);
         Intent i = new Intent(this, ActivityCodeview.class);
-        i.putExtra("prj", "android-platform");
-        i.putExtra("filename", item.getPath());
+        i.putExtra("prj", mProject);
+        i.putExtra("filename", "/"+item.getPath());
         i.putExtra("linnum", item.getLinnum());
         i.putExtra("ip", mIp);
         startActivity(i);
     }
-
-    private void CscopeQuery( Bundle savedInstanceState ) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.cscope);
-        
-        // get cscope result from web
-        HttpClient client = new DefaultHttpClient();
-        StringBuilder sb = new StringBuilder( "http://59.18.159.96/codeview/index.py/cscope?prj=").append(mProject)
-                .append("&method=").append(mMethod)
-                .append("&query=").append(mQuery);
-        Log.i( TAG, sb.toString() );
-        
-        HttpGet request = new HttpGet( sb.toString() );
-        ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        try {
-            mQueryReuslt = client.execute(request, responseHandler);
-        } catch (ClientProtocolException e1) {
-            e1.printStackTrace();
-            return;
-        } catch (IOException e1) {
-            e1.printStackTrace();
-            return;
-        }
-        if( mQueryReuslt == null ){
-            Log.e( TAG, "response str is null : " + sb.toString() );
-        }
-        // Log.i(TAG, queryReuslt);
-    }
     
-    private class CscopeAdapter extends ArrayAdapter<CscopeResult> {
+    private class CscopeAdapter extends ArrayAdapter<CscopeResultItem> {
         
         public CscopeAdapter(Context context, int textViewResourceId) {
             super(context, textViewResourceId, mCscopeResults);
@@ -117,7 +130,7 @@ public class ActivityCscope extends ListActivity {
                 LayoutInflater vi = (LayoutInflater)getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 v = vi.inflate(R.layout.cscope_row, null);
             }
-            CscopeResult p = mCscopeResults.get(position);
+            CscopeResultItem p = mCscopeResults.get(position);
             if (p != null) {
                 TextView t1 = (TextView) v.findViewById(R.id.cscope_path);
                 TextView t2 = (TextView) v.findViewById(R.id.cscope_method);
@@ -132,13 +145,14 @@ public class ActivityCscope extends ListActivity {
         }
     }
     
-    private class CscopeResult {
+    // not support set method
+    private class CscopeResultItem {
         private String mPath;
         private String mLinnum;
         private String mFunction;
         private String mLineStr;
         
-        public CscopeResult(String line) {
+        public CscopeResultItem(String line) {
             Pattern p = Pattern.compile("([^ ]+) ([^ ]+) ([^ ]+) (.+)");
             Matcher m = p.matcher(line);
             while( m.find() && m.groupCount() == 4 ){

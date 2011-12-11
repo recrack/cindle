@@ -101,6 +101,7 @@ public class ActivityCodeview extends Activity {
                     intent.putExtra("prj", mProject);
                     intent.putExtra("query", currentHtmlText);
                     intent.putExtra("method", -(which+1));
+                    intent.putExtra("ip", mIp);
                     myApp.startActivity(intent);
                 }
             } );

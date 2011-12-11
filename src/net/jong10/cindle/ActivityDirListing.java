@@ -61,10 +61,9 @@ public class ActivityDirListing extends ListActivity {
         new DirInfoUpdater().execute(0);
     }
 
-    ProgressDialog pd = null;
     
     private class DirInfoUpdater extends AsyncTask<Integer, Integer, Integer> {
-
+        ProgressDialog pd = null;
         @Override
         protected void onProgressUpdate(Integer... progress) {
             pd = ProgressDialog.show(thisActivity, "now loading...", "load dir info from server");
@@ -119,11 +118,11 @@ public class ActivityDirListing extends ListActivity {
             listUpdateToUpperDir();
             break;
         case FILE:
-            Intent i = null;
-            i = new Intent(this, ActivityCodeview.class);
+            Intent i = new Intent(this, ActivityCodeview.class);
             i.putExtra("filename", mPath + "/" + item.getName());
-            i.putExtra("ip", mIp);
             i.putExtra("prj", mProject);
+            i.putExtra("ip", mIp);
+            i.putExtra("linnum", "0");
             startActivity(i);
             break;
         default:
