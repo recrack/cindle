@@ -18,12 +18,14 @@
         
         <activity
             android:theme="@android:style/Theme.NoTitleBar"  
-            android:name=".ActivityCscope">
+            android:name=".ActivityCscope"
+            android:screenOrientation="landscape" >
         </activity>
         
         <activity
             android:theme="@android:style/Theme.NoTitleBar"  
-            android:name=".ActivityDirListing">
+            android:name=".ActivityDirListing"
+            android:screenOrientation="landscape" >
         </activity>
         
         <activity

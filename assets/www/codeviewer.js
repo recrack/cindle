@@ -46,7 +46,7 @@ Codeview = (function(){
                 $("pre").text( filestr );
                 // setting syntax highlighter extension
                 var brush = "plain";
-                var brushDic = {"cpp":"Cpp", "c":"Cpp", "hpp":"Cpp", "h":"Cpp"
+                var brushDic = {"cpp":"cpp", "c":"cpp", "hpp":"cpp", "h":"cpp"
                                     ,"java":"java"
                                     ,"sh":"bash", "mk":"bash"
                                     ,"css":"css", "html":"xml", "xml":"xml"
