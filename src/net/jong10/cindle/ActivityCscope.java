@@ -67,7 +67,7 @@ public class ActivityCscope extends ListActivity {
         ProgressDialog pd = null;
         @Override
         protected void onProgressUpdate(Integer... progress) {
-            pd = ProgressDialog.show(thisActivity, "now loading...", "load dir info from server");
+            pd = ProgressDialog.show(thisActivity, "now loading...", "load cscope result from server");
         }
 
         protected void onPostExecute(Integer result) {
